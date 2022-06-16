@@ -14,21 +14,26 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-##CREATE TABLE IN DB
+
+## CREATE TABLE IN DB
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     name = db.Column(db.String(1000))
-#Line below only required once, when creating DB. 
+
+
+# Line below only required once, when creating DB.
 # db.create_all()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 @app.route('/')
 def home():
@@ -41,7 +46,7 @@ def register():
     if request.method == "POST":
 
         if User.query.filter_by(email=request.form.get('email')).first():
-            #User already exists
+            # User already exists
             flash("You've already signed up with that email, log in instead!")
             return redirect(url_for('login'))
 
@@ -54,12 +59,12 @@ def register():
         new_user = User(
             name=request.form["name"],
             email=request.form["email"],
-            password=hash_and_salted_password,
+            password=hash_and_salted_password
         )
         db.session.add(new_user)
         db.session.commit()
 
-        #Log in and authenticate user after adding details to database.
+        # Log in and authenticate user after adding details to database.
         login_user(new_user)
 
         return redirect(url_for("secrets"))
@@ -75,17 +80,17 @@ def login():
         # Find user by email entered.
         user = User.query.filter_by(email=email).first()
 
-        #Email doesn't exist
+        # Email doesn't exist
         if not user:
             flash("That email does not exist, please try again.")
             return redirect(url_for('login'))
 
         # Check stored password hash against entered password hashed.
-        #Password incorrect
+        # Password incorrect
         if not check_password_hash(user.password, password):
             flash('Password incorrect, please try again.')
             return redirect(url_for('login'))
-        #Email exists and password correct
+        # Email exists and password correct
         else:
             login_user(user)
             return redirect(url_for('secrets'))
@@ -111,6 +116,6 @@ def logout():
 def download():
     return send_from_directory('static', path="files/cheat_sheet.pdf", as_attachment=True)
 
+
 if __name__ == "__main__":
     app.run(debug=True)
-
