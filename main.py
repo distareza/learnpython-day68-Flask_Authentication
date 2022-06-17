@@ -116,6 +116,24 @@ def logout():
 def download():
     return send_from_directory('static', path="files/cheat_sheet.pdf", as_attachment=True)
 
+from functools import wraps
+from flask import abort
+
+def admin_only(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        #If id is not 1 then return abort with 403 error
+        if current_user.id != 1:
+            return abort(403)
+        #Otherwise continue with the route function
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route("/admin")
+@login_required
+@admin_only
+def admin_page():
+    return render_template("admin_page.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
